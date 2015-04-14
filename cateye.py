@@ -13,7 +13,8 @@ def cateye_usage():
 	print "[OPTION]:"
 	print "-d seconds\t\t: update regularly at interval of seconds, where the \"seconds\" can be float point number. "
 	print "-s parameters\t\t: write parameters to file. use \"\" when parameters more than one."
-	print "-q\t\t\t: quiet, show filename only."
+	print "-q\t\t\t: quiet, show filename only, no content of file."
+	print "-r\t\t\t: recursively works in folder for list function. (likes tree)"
 	print "-h,--help\t\t: shows this usage."
 	print ""
 
@@ -39,12 +40,24 @@ def dowrite(path, sval):
 
 def cateye(ctl, basefolder="/sys"):
 	"""To dump content of entries, it's useful to show information at /proc or /sys folder."""
+	indent=""
+	for level in range(ctl["rec_cnt"]):
+		indent+="    "
+
 	for leaf in dols(basefolder):
 		if os.path.isfile(basefolder):
 			fullleaf = basefolder
 		else:
 			fullleaf = os.path.join(basefolder,leaf)
-		print (os.path.isdir(fullleaf) and "\033[1m" + " [d] " + leaf + "\033[0m" or "\033[1m" + " [f] " + leaf +(ctl['q'] and "\033[0m" or ": "+"\033[0m"+docat(fullleaf)))
+
+		print(indent + (os.path.isdir(fullleaf) and "\033[1m" + " [d] " + leaf + "\033[0m" or "\033[1m" + " [f] " + leaf +(ctl['q'] and "\033[0m" or ": "+"\033[0m"+docat(fullleaf))))
+
+		if ctl['r'] == 1:
+			if os.path.isdir(fullleaf):
+				ctl["rec_cnt"]+=1;
+				cateye(ctl, fullleaf)
+				ctl["rec_cnt"]-=1;
+
 
 def err_exit(err, ret_code, show_usage=False):
 	print "!!! Terminated by " + str(err)
@@ -55,13 +68,13 @@ def err_exit(err, ret_code, show_usage=False):
 
 if __name__ == "__main__":
 	try:
-		opts, args = getopt.gnu_getopt(sys.argv[1:], "d:hs:q", ["help",])
+		opts, args = getopt.gnu_getopt(sys.argv[1:], "d:hs:qr", ["help",])
 	except getopt.GetoptError as err:
 		err_exit(err, 2, True)
 	
 	regular_time=0
 	sval=""
-	ctl={"q":0}
+	ctl={"q":0, "r":0, "rec_cnt":0}
 	for op, ar in opts:
 		if op == "-d":
 			try:
@@ -75,6 +88,8 @@ if __name__ == "__main__":
 			sval = ar
 		elif op == "-q":
 			ctl['q']=1
+		elif op == "-r":
+			ctl['r']=1
 			
 
 	while True:
