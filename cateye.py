@@ -27,10 +27,14 @@ def dols(path="."):
 
 def docat(path):
 	"""To dump content of path"""
-	fd = os.popen("cat "+path)
-	ret = fd.read()
-	fd.close()
+	if os.path.isfile(path):
+		fd = os.popen("cat "+path)
+		ret = fd.read()
+		fd.close()
+	else:
+		ret = ""
 	return ret
+
 
 def dowrite(path, sval):
 	if os.path.isfile(path):
@@ -45,10 +49,10 @@ def cateye(ctl, basefolder="/sys"):
 		indent+="    "
 
 	for leaf in dols(basefolder):
-		if os.path.isfile(basefolder):
-			fullleaf = basefolder
-		else:
+		if os.path.isdir(basefolder):
 			fullleaf = os.path.join(basefolder,leaf)
+		else:
+			fullleaf = basefolder
 
 		print(indent + (os.path.isdir(fullleaf) and "\033[1m" + " [d] " + leaf + "\033[0m" or "\033[1m" + " [f] " + leaf +(ctl['q'] and "\033[0m" or ": "+"\033[0m"+docat(fullleaf))))
 
