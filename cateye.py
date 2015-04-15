@@ -44,6 +44,7 @@ def dowrite(path, sval):
 
 def cateye(ctl, basefolder="/sys"):
 	"""To dump content of entries, it's useful to show information at /proc or /sys folder."""
+
 	indent=""
 	for level in range(ctl["rec_cnt"]):
 		indent+="    "
@@ -51,10 +52,19 @@ def cateye(ctl, basefolder="/sys"):
 	for leaf in dols(basefolder):
 		if os.path.isdir(basefolder):
 			fullleaf = os.path.join(basefolder,leaf)
+			ctl["f_type"]='d'
+		elif os.path.isfile(basefolder):
+			fullleaf = basefolder
+			ctl["f_type"]='f'
 		else:
 			fullleaf = basefolder
+			ctl["f_type"]='s'
 
-		print(indent + (os.path.isdir(fullleaf) and "\033[1m" + " [d] " + leaf + "\033[0m" or "\033[1m" + " [f] " + leaf +(ctl['q'] and "\033[0m" or ": "+"\033[0m"+docat(fullleaf))))
+		if os.path.islink(fullleaf):
+			ctl["f_type"] = ctl["f_type"].upper()
+
+
+		print(indent + (os.path.isdir(fullleaf) and "\033[1m" + " [" + ctl["f_type"] +"] " + leaf + "\033[0m" or "\033[1m" + " [" + ctl["f_type"] + "] " + leaf +(ctl['q'] and "\033[0m" or ": "+"\033[0m"+docat(fullleaf))))
 
 		if ctl['r'] == 1:
 			if os.path.isdir(fullleaf):
@@ -78,7 +88,7 @@ if __name__ == "__main__":
 	
 	regular_time=0
 	sval=""
-	ctl={"q":0, "r":0, "rec_cnt":0}
+	ctl={"q":0, "r":0, "rec_cnt":0, 'f_type':'f'}
 	for op, ar in opts:
 		if op == "-d":
 			try:
