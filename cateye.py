@@ -50,21 +50,19 @@ def cateye(ctl, basefolder="/sys"):
 		indent+="    "
 
 	for leaf in dols(basefolder):
-		if os.path.isdir(basefolder):
-			fullleaf = os.path.join(basefolder,leaf)
-			ctl["f_type"]='d'
-		elif os.path.isfile(basefolder):
-			fullleaf = basefolder
+		fullleaf = os.path.join(basefolder,leaf)
+		if os.path.isfile(fullleaf):
 			ctl["f_type"]='f'
+		elif os.path.isdir(fullleaf):
+			ctl["f_type"]='d'
 		else:
-			fullleaf = basefolder
 			ctl["f_type"]='s'
 
 		if os.path.islink(fullleaf):
 			ctl["f_type"] = ctl["f_type"].upper()
 
 
-		print(indent + (os.path.isdir(fullleaf) and "\033[1m" + " [" + ctl["f_type"] +"] " + leaf + "\033[0m" or "\033[1m" + " [" + ctl["f_type"] + "] " + leaf +(ctl['q'] and "\033[0m" or ": "+"\033[0m"+docat(fullleaf))))
+		print(indent + "\033[1m" + " [" + ctl["f_type"] + "] " + leaf +(ctl['q'] and "\033[0m" or ": "+"\033[0m"+docat(fullleaf)))
 
 		if ctl['r'] == 1:
 			if os.path.isdir(fullleaf):
