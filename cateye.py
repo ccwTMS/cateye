@@ -66,7 +66,14 @@ def cateye(ctl, basefolder="/sys"):
 			ctl["l_path"] = os.path.realpath(fullleaf)
 
 
-		info = indent + "\033[1m" + " [" + ctl["f_type"] + "] " + leaf 
+		info = indent + "\033[1m" + " ["
+
+		if os.path.islink(fullleaf):
+			info += "\033[36m"
+
+		info += ctl["f_type"] 
+		info += "\033[0m" + "\033[1m" + "] " + leaf 
+
 
 		if ctl['q']:
 			if ctl['l'] and os.path.islink(fullleaf):
@@ -81,7 +88,6 @@ def cateye(ctl, basefolder="/sys"):
 				info += ": " + "\033[0m" + docat(fullleaf)
 		
 		print(info)
-	##	print(indent + "\033[1m" + " [" + ctl["f_type"] + "] " + leaf +(ctl['q'] and "\033[0m"+(ctl['l'] and ": "+ ctl["l_path"] or "") or ": "+"\033[0m"+docat(fullleaf)))
 
 		
 		if ctl['r']:
