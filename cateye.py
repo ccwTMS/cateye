@@ -4,6 +4,7 @@ import os
 import sys
 import getopt
 import time
+import string
 
 def cateye_usage():
 	"""Usage of cateye.py."""
@@ -27,9 +28,9 @@ def dols(path="."):
 	fd.close()
 	return dirlist
 
-def docat(path):
+def docat(pathi, isfile):
 	"""To dump content of path"""
-	if os.path.isfile(path):
+	if isfile:
 		fd = os.popen("cat "+path)
 		ret = fd.read()
 		fd.close()
@@ -48,57 +49,74 @@ def dowrite(path, sval):
 def cateye(ctl, basefolder="/sys"):
 	"""To dump content of entries, it's useful to show information at /proc or /sys folder."""
 
-	indent=""
+	indent=[]
 	for level in range(ctl["rec_cnt"]):
-		indent+="    "
+		indent.append("    ")
 
 	for leaf in dols(basefolder):
-		info=""
+		info=[]
+		isfile=False
+		isDir=False
+		isLink=False
 		fullleaf = os.path.join(basefolder,leaf)
-		if os.path.isfile(fullleaf):
+		isfile = os.path.isfile(fullleaf)
+		if(isfile == False):
+			isDir = os.path.isdir(fullleaf)
+		isLink = os.path.islink(fullleaf)
+
+		if isfile:
 			ctl["f_type"]='f'
-		elif os.path.isdir(fullleaf):
+		elif isDir:
 			ctl["f_type"]='d'
 		else:
 			ctl["f_type"]='s'
 
 		ctl["l_path"]=""
-		if os.path.islink(fullleaf):
+		if isLink:
 			ctl["f_type"] = ctl["f_type"].upper()
 			try:
 				ctl["l_path"] = os.path.realpath(fullleaf)
 			except OSError as err:
 				ctl["l_path"] = str(err)
 
-		info = indent + (ctl['c']==0 and "\033[1m" or "") + " ["
+		info.extend(indent)
+		info.append((ctl['c']==0 and "\033[1m" or "")) 
+		info.append(" [")
 
-		if os.path.islink(fullleaf):
-			info += (ctl['c']==0 and "\033[36m" or "")
+		if isLink:
+			info.append((ctl['c']==0 and "\033[36m" or ""))
 
-		info += ctl["f_type"] 
-		info += (ctl['c']==0 and "\033[0m" + "\033[1m" or "") + "] " + leaf 
+		info.append(ctl["f_type"])
+		info.append((ctl['c']==0 and "\033[0m" + "\033[1m" or ""))
+		info.append("] ")
+		info.append(leaf) 
 
 
 		if ctl['q']:
-			if ctl['l'] and os.path.islink(fullleaf):
-				info += ": " + (ctl['c']==0 and "\033[0m" or "") + ctl["l_path"]
+			if ctl['l'] and isLink:
+				info.append(": ")
+				info.append((ctl['c']==0 and "\033[0m" or ""))
+				info.append(ctl["l_path"])
 			else:
-				info += (ctl['c']==0 and "\033[0m" or "")
+				info.append((ctl['c']==0 and "\033[0m" or ""))
 		
 		else:
-			if os.path.isdir(fullleaf):
-				info += (ctl['c']==0 and "\033[0m" or "")
+			if isDir:
+				info.append((ctl['c']==0 and "\033[0m" or ""))
 			else:
-				info += ": " + (ctl['c']==0 and "\033[0m" or "") + docat(fullleaf)
+				info.append(": ")
+				info.append((ctl['c']==0 and "\033[0m" or ""))
+				info.append(docat(fullleaf, isfile))
 		
-		print(info)
+		
+		print(string.join(info,""))
 
 		
 		if ctl['r']:
-			if ctl['l'] and os.path.islink(fullleaf):
+			if ctl['l'] and isLink:
 				pass
 
-			elif os.path.isdir(fullleaf):
+			elif isDir:
 				ctl["rec_cnt"]+=1;
 				cateye(ctl, fullleaf)
 				ctl["rec_cnt"]-=1;
