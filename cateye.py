@@ -11,12 +11,13 @@ def cateye_usage():
 	print "usage: cateye.py [path] [OPTION]"
 	print ""
 	print "[OPTION]:"
-	print "-d seconds    : update regularly at interval of seconds, where the \"seconds\" can be float point number. "
+	print "-c            : Turn colorization off. for dumping output information to file."
+	print "-d seconds    : Update regularly at interval of seconds, where the \"seconds\" can be float point number. "
 	print "-h,--help     : It shows this usage."
 	print "-l            : To show symbolic link's real path, and to prevent infinite loop.(available when -q option is enabled.)"
 	print "-r            : It recursively works in folder for list function. (likes tree)"
 	print "-s parameters : To write parameters to file. use \"\" when parameters more than one."
-	print "-q            : quiet, It shows filename only, no content of file."
+	print "-q            : Quiet, It shows filename only, no content of file."
 	print ""
 
 def dols(path="."):
@@ -43,6 +44,7 @@ def dowrite(path, sval):
 		os.write(fd, sval)
 		os.close(fd)
 
+
 def cateye(ctl, basefolder="/sys"):
 	"""To dump content of entries, it's useful to show information at /proc or /sys folder."""
 
@@ -63,29 +65,31 @@ def cateye(ctl, basefolder="/sys"):
 		ctl["l_path"]=""
 		if os.path.islink(fullleaf):
 			ctl["f_type"] = ctl["f_type"].upper()
-			ctl["l_path"] = os.path.realpath(fullleaf)
+			try:
+				ctl["l_path"] = os.path.realpath(fullleaf)
+			except OSError as err:
+				ctl["l_path"] = str(err)
 
-
-		info = indent + "\033[1m" + " ["
+		info = indent + (ctl['c']==0 and "\033[1m" or "") + " ["
 
 		if os.path.islink(fullleaf):
-			info += "\033[36m"
+			info += (ctl['c']==0 and "\033[36m" or "")
 
 		info += ctl["f_type"] 
-		info += "\033[0m" + "\033[1m" + "] " + leaf 
+		info += (ctl['c']==0 and "\033[0m" + "\033[1m" or "") + "] " + leaf 
 
 
 		if ctl['q']:
 			if ctl['l'] and os.path.islink(fullleaf):
-				info += ": " + "\033[0m" + ctl["l_path"]
+				info += ": " + (ctl['c']==0 and "\033[0m" or "") + ctl["l_path"]
 			else:
-				info += "\033[0m"
+				info += (ctl['c']==0 and "\033[0m" or "")
 		
 		else:
 			if os.path.isdir(fullleaf):
-				info += "\033[0m"
+				info += (ctl['c']==0 and "\033[0m" or "")
 			else:
-				info += ": " + "\033[0m" + docat(fullleaf)
+				info += ": " + (ctl['c']==0 and "\033[0m" or "") + docat(fullleaf)
 		
 		print(info)
 
@@ -109,13 +113,13 @@ def err_exit(err, ret_code, show_usage=False):
 
 if __name__ == "__main__":
 	try:
-		opts, args = getopt.gnu_getopt(sys.argv[1:], "d:hls:qr", ["help",])
+		opts, args = getopt.gnu_getopt(sys.argv[1:], "cd:hls:qr", ["help",])
 	except getopt.GetoptError as err:
 		err_exit(err, 2, True)
 	
 	regular_time=0
 	sval=""
-	ctl={"q":0, "r":0, "l":0, "rec_cnt":0, "f_type":'f', "l_path":""}
+	ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":""}
 	for op, ar in opts:
 		if op == "-d":
 			try:
@@ -133,6 +137,8 @@ if __name__ == "__main__":
 			ctl['r']=1
 		elif op == "-l":
 			ctl['l']=1
+		elif op == "-c":
+			ctl['c']=1
 			
 
 	while True:
