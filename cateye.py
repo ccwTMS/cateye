@@ -21,12 +21,6 @@ def cateye_usage():
 	print "-q            : Quiet, It shows filename only, no content of file."
 	print ""
 
-def dols(path="."):
-	"""To list entries of path."""
-	fd = os.popen("ls -A "+path)
-	dirlist = fd.read().split()
-	fd.close()
-	return dirlist
 
 def docat(pathi, isfile):
 	"""To dump content of path"""
@@ -53,7 +47,7 @@ def cateye(ctl, basefolder="/sys"):
 	for level in range(ctl["rec_cnt"]):
 		indent.append("    ")
 
-	for leaf in dols(basefolder):
+	for leaf in os.listdir(basefolder): ##dols(basefolder):
 		info=[]
 		isfile=False
 		isDir=False
@@ -87,7 +81,7 @@ def cateye(ctl, basefolder="/sys"):
 			info.append((ctl['c']==0 and "\033[36m" or ""))
 
 		info.append(ctl["f_type"])
-		info.append((ctl['c']==0 and "\033[0m" + "\033[1m" or ""))
+		info.append((ctl['c']==0 and "\033[0m\033[1m" or ""))
 		info.append("] ")
 		info.append(leaf) 
 
