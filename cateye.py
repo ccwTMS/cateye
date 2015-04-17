@@ -22,14 +22,22 @@ def cateye_usage():
 	print ""
 
 
-def docat(pathi, isfile):
+def docat(path, isfile):
 	"""To dump content of path"""
+	
 	if isfile:
-		fd = os.popen("cat "+path)
-		ret = fd.read()
-		fd.close()
+		try:
+			f = open(path, "r")
+		except IOError as err:
+			ret = str(err)
+			return ret
+		try:
+			ret = f.read()
+		except IOError as err:
+			ret = str(err)
+		f.close()
 	else:
-		ret = ""
+		ret=""
 	return ret
 
 
