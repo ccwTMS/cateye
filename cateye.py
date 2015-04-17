@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
 	while True:
 		if len(args) is not 1:
-			cateye_errexit("wrong path specified", 5)
+			cateye_errexit("wrong path specified", 5, True)
 			
 		if sval is not "":
 			cateye_dowrite(str(args[0]), sval)
