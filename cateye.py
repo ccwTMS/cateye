@@ -50,7 +50,7 @@ def cateye(ctl, basefolder="/sys"):
 	dirs=[]
 	try:
 		dirs = os.listdir(basefolder)
-	except:
+	except OSError:
 		dirs.append(basefolder)
 
 	for leaf in dirs:
