@@ -47,7 +47,13 @@ def cateye(ctl, basefolder="/sys"):
 	for level in range(ctl["rec_cnt"]):
 		indent.append("    ")
 
-	for leaf in os.listdir(basefolder): ##dols(basefolder):
+	dirs=[]
+	try:
+		dirs = os.listdir(basefolder)
+	except:
+		dirs.append(basefolder)
+
+	for leaf in dirs:
 		info=[]
 		isfile=False
 		isDir=False
