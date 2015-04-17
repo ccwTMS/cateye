@@ -43,8 +43,15 @@ def docat(path, isfile):
 
 def dowrite(path, sval):
 	if os.path.isfile(path):
-		fd=os.open(path, os.O_RDWR)
-		os.write(fd, sval)
+		try:
+			fd=os.open(path, os.O_RDWR)
+		except OSError as err:
+			print str(err)
+			return 
+		try:
+			os.write(fd, sval)
+		except OSError as err:
+			print str(err)
 		os.close(fd)
 
 
