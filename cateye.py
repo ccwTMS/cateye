@@ -6,6 +6,9 @@ import getopt
 import time
 import string
 
+
+cateye_ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":""}
+
 def cateye_usage():
 	"""Usage of cateye.py."""
 	print ""
@@ -22,7 +25,7 @@ def cateye_usage():
 	print ""
 
 
-def docat(path, isfile):
+def cateye_docat(path, isfile):
 	"""To dump content of path"""
 	
 	if isfile:
@@ -41,7 +44,8 @@ def docat(path, isfile):
 	return ret
 
 
-def dowrite(path, sval):
+def cateye_dowrite(path, sval):
+	"""To write data to specified file"""
 	if os.path.isfile(path):
 		try:
 			fd=os.open(path, os.O_RDWR)
@@ -56,7 +60,10 @@ def dowrite(path, sval):
 
 
 def cateye(ctl, basefolder="/sys"):
-	"""To dump content of entries, it's useful to show information at /proc or /sys folder."""
+	"""
+	To dump content of entries, it's useful to show information at /proc or /sys folder.
+	use cateye.ctl for first argument.
+	"""
 
 	indent=[]
 	for level in range(ctl["rec_cnt"]):
@@ -121,7 +128,7 @@ def cateye(ctl, basefolder="/sys"):
 			else:
 				info.append(": ")
 				info.append((ctl['c']==0 and "\033[0m" or ""))
-				info.append(docat(fullleaf, isfile))
+				info.append(cateye_docat(fullleaf, isfile))
 		
 		
 		print(string.join(info,""))
@@ -137,7 +144,8 @@ def cateye(ctl, basefolder="/sys"):
 				ctl["rec_cnt"]-=1;
 
 
-def err_exit(err, ret_code, show_usage=False):
+def cateye_errexit(err, ret_code, show_usage=False):
+	""" error processing function """
 	print "!!! Terminated by " + str(err)
 	if show_usage is True:
 		cateye_usage()
@@ -148,44 +156,43 @@ if __name__ == "__main__":
 	try:
 		opts, args = getopt.gnu_getopt(sys.argv[1:], "cd:hls:qr", ["help",])
 	except getopt.GetoptError as err:
-		err_exit(err, 2, True)
+		cateye_errexit(err, 2, True)
 	
 	regular_time=0
 	sval=""
-	ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":""}
 	for op, ar in opts:
 		if op == "-d":
 			try:
 				regular_time = float(ar)
 			except ValueError as err:
-				err_exit(err, 3, True)	
+				cateye_errexit(err, 3, True)	
 		elif op in ("-h","--help"):
 			cateye_usage()
 			sys.exit(0)
 		elif op == "-s":
 			sval = ar
 		elif op == "-q":
-			ctl['q']=1
+			cateye_ctl['q']=1
 		elif op == "-r":
-			ctl['r']=1
+			cateye_ctl['r']=1
 		elif op == "-l":
-			ctl['l']=1
+			cateye_ctl['l']=1
 		elif op == "-c":
-			ctl['c']=1
+			cateye_ctl['c']=1
 			
 
 	while True:
 		if len(args) is not 1:
-			err_exit("wrong path specified", 5)
+			cateye_errexit("wrong path specified", 5)
 			
 		if sval is not "":
-			dowrite(str(args[0]), sval)
+			cateye_dowrite(str(args[0]), sval)
 			sys.exit(0)
 
 		try:
-			cateye(ctl, str(args[0]))
+			cateye(cateye_ctl, str(args[0]))
 		except IndexError as err:
-			err_exit(err, 4)
+			cateye_errexit(err, 4)
 
 		if not regular_time:
 			sys.exit(0)
