@@ -7,7 +7,7 @@ import time
 import string
 
 
-cateye_ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":""}
+cateye_ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":"", "d_except":""}
 
 def cateye_usage():
 	"""Usage of cateye.py."""
@@ -15,13 +15,14 @@ def cateye_usage():
 	print "usage: cateye.py [path] [OPTION]"
 	print ""
 	print "[OPTION]:"
-	print "-c            : Turn colorization off. for dumping output information to file."
-	print "-d seconds    : Update regularly at interval of seconds, where the \"seconds\" can be float point number. "
-	print "-h,--help     : It shows this usage."
-	print "-l            : To show symbolic link's real path, and to prevent infinite loop.(available when -q option is enabled.)"
-	print "-r            : It recursively works in folder for list function. (likes tree)"
-	print "-s parameters : To write parameters to file. use \"\" when parameters more than one."
-	print "-q            : Quiet, It shows filename only, no content of file."
+	print "-c             : Turn colorization off. for dumping output information to file."
+	print "-d seconds     : Update regularly at interval of seconds, where the \"seconds\" can be float point number. "
+	print "-h,--help      : It shows this usage."
+	print "-l             : To show symbolic link's real path, and to prevent infinite loop.(available when -q option is enabled.)"
+	print "-r             : It recursively works in folder for list function. (likes tree)"
+	print "-s parameters  : To write parameters to file. use \"\" when parameters more than one."
+	print "-q             : Quiet, It shows filename only, no content of file."
+	print "-x foldernames : ignores specified folders. (foldernames: \"folder1 folder2 ...\")" 
 	print ""
 
 
@@ -74,6 +75,13 @@ def cateye(ctl, basefolder="/sys"):
 		dirs = os.listdir(basefolder)
 	except OSError:
 		dirs.append(basefolder)
+	
+	if ctl["d_except"] != "":
+		for folder in ar.split(" "):
+			try:
+				dirs.remove(folder)
+			except ValueError:
+				pass
 
 	for leaf in dirs:
 		info=[]
@@ -154,7 +162,7 @@ def cateye_errexit(err, ret_code, show_usage=False):
 
 if __name__ == "__main__":
 	try:
-		opts, args = getopt.gnu_getopt(sys.argv[1:], "cd:hls:qr", ["help",])
+		opts, args = getopt.gnu_getopt(sys.argv[1:], "cd:hls:qrx:", ["help",])
 	except getopt.GetoptError as err:
 		cateye_errexit(err, 2, True)
 	
@@ -179,6 +187,8 @@ if __name__ == "__main__":
 			cateye_ctl['l']=1
 		elif op == "-c":
 			cateye_ctl['c']=1
+		elif op == "-x":
+			cateye_ctl["d_except"]=ar
 			
 
 	while True:
