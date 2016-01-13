@@ -190,7 +190,9 @@ if __name__ == "__main__":
 		elif op == "-x":
 			cateye_ctl["d_except"]=ar
 			
-
+	if len(opts) != 1 and sval != "":
+		cateye_errexit("Warning: -s option shall not use with other options.", 6, True)
+		
 	while True:
 		if len(args) is not 1:
 			cateye_errexit("wrong path specified", 5, True)
