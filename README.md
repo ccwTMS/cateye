@@ -20,3 +20,5 @@ usage: cateye.py [path] [OPTION]
 -s parameters　: To write parameters to file. use "" when parameters more than one.
 
 -q　　　　　　: Quiet, It shows filename only, no content of file.
+
+-x foldernames : ignores specified folders. (foldernames: "folder1 folder2 ...")
