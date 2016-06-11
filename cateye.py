@@ -84,6 +84,11 @@ def cateye(ctl, basefolder="/sys"):
 				pass
 
 	for leaf in dirs:
+		startHighlight = (ctl['c']==0 and "\033[1m" or "")
+		restartHighlight = (ctl['c']==0 and "\033[0m\033[1m" or "")
+		linkHighlight = (ctl['c']==0 and "\033[36m" or "")
+		stopHighlight = (ctl['c']==0 and "\033[0m" or "")
+		 
 		info=[]
 		isfile=False
 		isDir=False
@@ -110,14 +115,14 @@ def cateye(ctl, basefolder="/sys"):
 				ctl["l_path"] = str(err)
 
 		info.extend(indent)
-		info.append((ctl['c']==0 and "\033[1m" or "")) 
+		info.append(startHighlight) 
 		info.append(" [")
 
 		if isLink:
-			info.append((ctl['c']==0 and "\033[36m" or ""))
+			info.append(linkHighlight)
 
 		info.append(ctl["f_type"])
-		info.append((ctl['c']==0 and "\033[0m\033[1m" or ""))
+		info.append(restartHighlight)
 		info.append("] ")
 		info.append(leaf) 
 
@@ -125,17 +130,17 @@ def cateye(ctl, basefolder="/sys"):
 		if ctl['q']:
 			if ctl['l'] and isLink:
 				info.append(": ")
-				info.append((ctl['c']==0 and "\033[0m" or ""))
+				info.append(stopHighlight)
 				info.append(ctl["l_path"])
 			else:
-				info.append((ctl['c']==0 and "\033[0m" or ""))
+				info.append(stopHighlight)
 		
 		else:
 			if isDir:
-				info.append((ctl['c']==0 and "\033[0m" or ""))
+				info.append(stopHighlight)
 			else:
 				info.append(": ")
-				info.append((ctl['c']==0 and "\033[0m" or ""))
+				info.append(stopHighlight)
 				info.append(cateye_docat(fullleaf, isfile))
 		
 		
