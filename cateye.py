@@ -60,6 +60,39 @@ def cateye_dowrite(path, sval):
 		os.close(fd)
 
 
+def info_layout(info, ctl, leaf, isLink):	
+	startHighlight = (ctl['c']==0 and "\033[1m" or "")
+	restartHighlight = (ctl['c']==0 and "\033[0m\033[1m" or "")
+	linkHighlight = (ctl['c']==0 and "\033[36m" or "")
+	stopHighlight = (ctl['c']==0 and "\033[0m" or "")
+
+	info.append(startHighlight) 
+	info.append(" [")
+
+	if isLink:
+		info.append(linkHighlight)
+
+	info.append(ctl["f_type"])
+	info.append(restartHighlight)
+	info.append("] ")
+	info.append(leaf) 
+
+
+	if ctl['q']:
+		if ctl['l'] and isLink:
+			info.append(": ")
+			info.append(stopHighlight)
+			info.append(ctl["l_path"])
+		else:
+			info.append(stopHighlight)
+	else:
+		if ctl["f_type"] == 'd':
+			info.append(stopHighlight)
+		else:
+			info.append(": ")
+			info.append(stopHighlight)
+
+
 def cateye(ctl, basefolder="/sys"):
 	"""
 	To dump content of entries, it's useful to show information at /proc or /sys folder.
@@ -84,10 +117,6 @@ def cateye(ctl, basefolder="/sys"):
 				pass
 
 	for leaf in dirs:
-		startHighlight = (ctl['c']==0 and "\033[1m" or "")
-		restartHighlight = (ctl['c']==0 and "\033[0m\033[1m" or "")
-		linkHighlight = (ctl['c']==0 and "\033[36m" or "")
-		stopHighlight = (ctl['c']==0 and "\033[0m" or "")
 		 
 		info=[]
 		isfile=False
@@ -114,34 +143,13 @@ def cateye(ctl, basefolder="/sys"):
 			except OSError as err:
 				ctl["l_path"] = str(err)
 
+
 		info.extend(indent)
-		info.append(startHighlight) 
-		info.append(" [")
 
-		if isLink:
-			info.append(linkHighlight)
+		info_layout(info, ctl, leaf, isLink)
 
-		info.append(ctl["f_type"])
-		info.append(restartHighlight)
-		info.append("] ")
-		info.append(leaf) 
-
-
-		if ctl['q']:
-			if ctl['l'] and isLink:
-				info.append(": ")
-				info.append(stopHighlight)
-				info.append(ctl["l_path"])
-			else:
-				info.append(stopHighlight)
-		
-		else:
-			if isDir:
-				info.append(stopHighlight)
-			else:
-				info.append(": ")
-				info.append(stopHighlight)
-				info.append(cateye_docat(fullleaf, isfile))
+		if not ctl['q'] and isFile:
+			info.append(cateye_docat(fullleaf, isfile))
 		
 		
 		print(string.join(info,""))
