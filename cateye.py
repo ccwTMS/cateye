@@ -148,8 +148,8 @@ def cateye(ctl, basefolder="/sys"):
 
 		info_layout(info, ctl, leaf, isLink)
 
-		if not ctl['q'] and isFile:
-			info.append(cateye_docat(fullleaf, isfile))
+		if not ctl['q'] and not isDir: 
+				info.append(cateye_docat(fullleaf, isfile))
 		
 		
 		print(string.join(info,""))
