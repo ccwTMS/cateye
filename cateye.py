@@ -26,10 +26,10 @@ def cateye_usage():
 	print ""
 
 
-def cateye_docat(path, isfile):
+def cateye_docat(path, isFile):
 	"""To dump content of path"""
 	
-	if isfile:
+	if isFile:
 		try:
 			f = open(path, "r")
 		except IOError as err:
@@ -60,7 +60,7 @@ def cateye_dowrite(path, sval):
 		os.close(fd)
 
 
-def info_layout(info, ctl, leaf, isLink):	
+def info_highlight(info, ctl, leaf, isLink):	
 	startHighlight = (ctl['c']==0 and "\033[1m" or "")
 	restartHighlight = (ctl['c']==0 and "\033[0m\033[1m" or "")
 	linkHighlight = (ctl['c']==0 and "\033[36m" or "")
@@ -93,6 +93,35 @@ def info_layout(info, ctl, leaf, isLink):
 			info.append(stopHighlight)
 
 
+
+def leaf_type(ctl, fullleaf):
+	isFile=False
+	isDir=False
+	isLink=False
+	isFile = os.path.isfile(fullleaf)
+	if(isFile == False):
+		isDir = os.path.isdir(fullleaf)
+	isLink = os.path.islink(fullleaf)
+
+	if isFile:
+		ctl["f_type"]='f'
+	elif isDir:
+		ctl["f_type"]='d'
+	else:
+		ctl["f_type"]='s'
+
+	ctl["l_path"]=""
+	if isLink:
+		ctl["f_type"] = ctl["f_type"].upper()
+		try:
+			ctl["l_path"] = os.path.realpath(fullleaf)
+		except OSError as err:
+			ctl["l_path"] = str(err)
+
+	return (isFile,isDir,isLink)
+
+
+
 def cateye(ctl, basefolder="/sys"):
 	"""
 	To dump content of entries, it's useful to show information at /proc or /sys folder.
@@ -119,37 +148,20 @@ def cateye(ctl, basefolder="/sys"):
 	for leaf in dirs:
 		 
 		info=[]
-		isfile=False
+		fullleaf = os.path.join(basefolder,leaf)
+		isFile=False
 		isDir=False
 		isLink=False
-		fullleaf = os.path.join(basefolder,leaf)
-		isfile = os.path.isfile(fullleaf)
-		if(isfile == False):
-			isDir = os.path.isdir(fullleaf)
-		isLink = os.path.islink(fullleaf)
-
-		if isfile:
-			ctl["f_type"]='f'
-		elif isDir:
-			ctl["f_type"]='d'
-		else:
-			ctl["f_type"]='s'
-
-		ctl["l_path"]=""
-		if isLink:
-			ctl["f_type"] = ctl["f_type"].upper()
-			try:
-				ctl["l_path"] = os.path.realpath(fullleaf)
-			except OSError as err:
-				ctl["l_path"] = str(err)
+		
+		(isFile,isDir,isLink) = leaf_type(ctl, fullleaf)
 
 
 		info.extend(indent)
 
-		info_layout(info, ctl, leaf, isLink)
+		info_highlight(info, ctl, leaf, isLink)
 
 		if not ctl['q'] and not isDir: 
-				info.append(cateye_docat(fullleaf, isfile))
+				info.append(cateye_docat(fullleaf, isFile))
 		
 		
 		print(string.join(info,""))
