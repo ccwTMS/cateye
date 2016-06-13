@@ -7,7 +7,7 @@ import time
 import string
 
 
-cateye_ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":"", "d_except":""}
+cateye_ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":"", "d_except":"", "regular_time":0.0, "sval":""}
 
 def cateye_usage():
 	"""Usage of cateye.py."""
@@ -183,27 +183,26 @@ def cateye_errexit(err, ret_code, show_usage=False):
 	if show_usage is True:
 		cateye_usage()
 	sys.exit(ret_code)
+
 	
 
-if __name__ == "__main__":
+def opts_parse(ctl):
 	try:
 		opts, args = getopt.gnu_getopt(sys.argv[1:], "cd:hls:qrx:", ["help",])
 	except getopt.GetoptError as err:
 		cateye_errexit(err, 2, True)
 	
-	regular_time=0
-	sval=""
 	for op, ar in opts:
 		if op == "-d":
 			try:
-				regular_time = float(ar)
+				cateye_ctl["regular_time"] = float(ar)
 			except ValueError as err:
 				cateye_errexit(err, 3, True)	
 		elif op in ("-h","--help"):
 			cateye_usage()
 			sys.exit(0)
 		elif op == "-s":
-			sval = ar
+			cateye_ctl["sval"] = ar
 		elif op == "-q":
 			cateye_ctl['q']=1
 		elif op == "-r":
@@ -215,15 +214,22 @@ if __name__ == "__main__":
 		elif op == "-x":
 			cateye_ctl["d_except"]=ar
 			
-	if len(opts) != 1 and sval != "":
+	if len(opts) != 1 and cateye_ctl["sval"] != "":
 		cateye_errexit("Warning: -s option shall not use with other options.", 6, True)
+
+	return args
+
+
+if __name__ == "__main__":
+
+	args = opts_parse(cateye_ctl)
 		
 	while True:
 		if len(args) is not 1:
 			cateye_errexit("wrong path specified", 5, True)
 			
-		if sval is not "":
-			cateye_dowrite(str(args[0]), sval)
+		if cateye_ctl["sval"] is not "":
+			cateye_dowrite(str(args[0]), cateye_ctl["sval"])
 			sys.exit(0)
 
 		try:
@@ -231,9 +237,9 @@ if __name__ == "__main__":
 		except IndexError as err:
 			cateye_errexit(err, 4)
 
-		if not regular_time:
+		if not cateye_ctl["regular_time"]:
 			sys.exit(0)
 
-		time.sleep(regular_time)
+		time.sleep(cateye_ctl["regular_time"])
 
 
