@@ -6,10 +6,11 @@ import getopt
 import time
 import string
 
+__all__ = ('cateye', 'cateye_ctl',)
 
 cateye_ctl={"q":0, "r":0, "l":0, "c":0, "rec_cnt":0, "f_type":'f', "l_path":"", "d_except":"", "regular_time":0.0, "sval":""}
 
-def cateye_usage():
+def _cateye_usage():
 	"""Usage of cateye.py."""
 	print ""
 	print "usage: cateye.py [path] [OPTION]"
@@ -26,7 +27,7 @@ def cateye_usage():
 	print ""
 
 
-def cateye_docat(path, isFile):
+def _cateye_docat(path, isFile):
 	"""To dump content of path"""
 	
 	if isFile:
@@ -45,7 +46,7 @@ def cateye_docat(path, isFile):
 	return ret
 
 
-def cateye_dowrite(path, sval):
+def _cateye_dowrite(path, sval):
 	"""To write data to specified file"""
 	if os.path.isfile(path):
 		try:
@@ -60,7 +61,7 @@ def cateye_dowrite(path, sval):
 		os.close(fd)
 
 
-def info_highlight(info, ctl, leaf, isLink):	
+def _info_highlight(info, ctl, leaf, isLink):	
 	startHighlight = (ctl['c']==0 and "\033[1m" or "")
 	restartHighlight = (ctl['c']==0 and "\033[0m\033[1m" or "")
 	linkHighlight = (ctl['c']==0 and "\033[36m" or "")
@@ -92,9 +93,25 @@ def info_highlight(info, ctl, leaf, isLink):
 			info.append(": ")
 			info.append(stopHighlight)
 
+def _info_formating(info, ctl, leaf, isLink):	
+	info.append("["+ctl["f_type"]+"]")
+	info.append(leaf) 
 
 
-def leaf_type(ctl, fullleaf):
+	if ctl['q']:
+		if ctl['l'] and isLink:
+			info.append(": ")
+			info.append(ctl["l_path"])
+	else:
+		if ctl["f_type"] == 'd':
+                    pass
+		else:
+			info.append(": ")
+
+
+
+
+def _leaf_type(ctl, fullleaf):
 	isFile=False
 	isDir=False
 	isLink=False
@@ -121,16 +138,19 @@ def leaf_type(ctl, fullleaf):
 	return (isFile,isDir,isLink)
 
 
+ret_data = []
 
 def cateye(ctl, basefolder="/sys"):
 	"""
 	To dump content of entries, it's useful to show information at /proc or /sys folder.
 	use cateye.ctl for first argument.
 	"""
+        global ret_data
 
-	indent=[]
-	for level in range(ctl["rec_cnt"]):
-		indent.append("    ")
+        if __name__ == "__main__":
+	    indent=[]
+	    for level in range(ctl["rec_cnt"]):
+		    indent.append("    ")
 
 	dirs=[]
 	try:
@@ -139,7 +159,7 @@ def cateye(ctl, basefolder="/sys"):
 		dirs.append(basefolder)
 	
 	if ctl["d_except"] != "":
-		for folder in ar.split(" "):
+            for folder in ctl["d_except"].split(" "): #ar.split(" "):
 			try:
 				dirs.remove(folder)
 			except ValueError:
@@ -153,18 +173,21 @@ def cateye(ctl, basefolder="/sys"):
 		isDir=False
 		isLink=False
 		
-		(isFile,isDir,isLink) = leaf_type(ctl, fullleaf)
+		(isFile,isDir,isLink) = _leaf_type(ctl, fullleaf)
 
-
-		info.extend(indent)
-
-		info_highlight(info, ctl, leaf, isLink)
+                if __name__ == "__main__":
+		    info.extend(indent)
+		    _info_highlight(info, ctl, leaf, isLink)
+                else:
+                    _info_formating(info, ctl, leaf, isLink)
 
 		if not ctl['q'] and not isDir: 
-				info.append(cateye_docat(fullleaf, isFile))
+				info.append(_cateye_docat(fullleaf, isFile))
 		
-		
-		print(string.join(info,""))
+                if __name__ == "__main__":		
+		    print(string.join(info,""))
+                else:
+                    ret_data += info
 
 		
 		if ctl['r']:
@@ -176,30 +199,32 @@ def cateye(ctl, basefolder="/sys"):
 				cateye(ctl, fullleaf)
 				ctl["rec_cnt"]-=1;
 
+        return ret_data
 
-def cateye_errexit(err, ret_code, show_usage=False):
+
+def _cateye_errexit(err, ret_code, show_usage=False):
 	""" error processing function """
 	print "!!! Terminated by " + str(err)
 	if show_usage is True:
-		cateye_usage()
+		_cateye_usage()
 	sys.exit(ret_code)
 
 	
 
-def opts_parse(ctl):
+def _opts_parse(ctl):
 	try:
 		opts, args = getopt.gnu_getopt(sys.argv[1:], "cd:hls:qrx:", ["help",])
 	except getopt.GetoptError as err:
-		cateye_errexit(err, 2, True)
+		_cateye_errexit(err, 2, True)
 	
 	for op, ar in opts:
 		if op == "-d":
 			try:
 				cateye_ctl["regular_time"] = float(ar)
 			except ValueError as err:
-				cateye_errexit(err, 3, True)	
+				_cateye_errexit(err, 3, True)	
 		elif op in ("-h","--help"):
-			cateye_usage()
+			_cateye_usage()
 			sys.exit(0)
 		elif op == "-s":
 			cateye_ctl["sval"] = ar
@@ -215,27 +240,27 @@ def opts_parse(ctl):
 			cateye_ctl["d_except"]=ar
 			
 	if len(opts) != 1 and cateye_ctl["sval"] != "":
-		cateye_errexit("Warning: -s option shall not use with other options.", 6, True)
+		_cateye_errexit("Warning: -s option shall not use with other options.", 6, True)
 
 	return args
 
 
 if __name__ == "__main__":
 
-	args = opts_parse(cateye_ctl)
+	args = _opts_parse(cateye_ctl)
 		
 	while True:
 		if len(args) is not 1:
-			cateye_errexit("wrong path specified", 5, True)
+			_cateye_errexit("wrong path specified", 5, True)
 			
 		if cateye_ctl["sval"] is not "":
-			cateye_dowrite(str(args[0]), cateye_ctl["sval"])
+			_cateye_dowrite(str(args[0]), cateye_ctl["sval"])
 			sys.exit(0)
 
 		try:
 			cateye(cateye_ctl, str(args[0]))
 		except IndexError as err:
-			cateye_errexit(err, 4)
+			_cateye_errexit(err, 4)
 
 		if not cateye_ctl["regular_time"]:
 			sys.exit(0)
